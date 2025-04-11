@@ -2,16 +2,45 @@
 import SearchableLayout from "@/components/searchable-layout";
 import style from "./index.module.css";
 import { ReactNode } from "react";
-import books from "@/mock/books.json";
+import BookItem from "@/components/book-item";
+import { InferGetStaticPropsType } from "next";
+import fetchBooks from "@/lib/fetch-books";
+import fetchRandomBooks from "@/lib/fetch-random-books";
 
-export default function Home() {
+// 아래의 약속된 함수를 정의하면 해당 페이지는 서버사이드 렌더링이 된다.
+export const getStaticProps = async () => {
+  console.log("getStaticProps 호출");
+
+  const [allBooks, recoBooks] = await Promise.all([
+    fetchBooks(),
+    fetchRandomBooks(),
+  ]);
+
+  return {
+    props: {
+      allBooks,
+      recoBooks,
+    },
+  };
+};
+
+export default function Home({
+  allBooks,
+  recoBooks,
+}: InferGetStaticPropsType<typeof getStaticProps>) {
   return (
     <div className={style.container}>
       <section>
         <h3>지금 추천하는 도서</h3>
+        {recoBooks.map((book) => (
+          <BookItem key={book.id} {...book} />
+        ))}
       </section>
       <section>
         <h3>등록된 모든 도서</h3>
+        {allBooks.map((book) => (
+          <BookItem key={book.id} {...book} />
+        ))}
       </section>
     </div>
   );
